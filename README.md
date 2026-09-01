@@ -43,16 +43,27 @@ cd wedding-wishes
 npm install
 ```
 
-### 3. Start development server
+### 3. Start Frontend & Backend API Together
 ```bash
-npm run dev
+npm run dev:all
 ```
-Open `http://localhost:5173` in your browser.
+This runs the **Express Backend Server** (Port `5000`) and **Vite Frontend** (Port `5173`) concurrently.
 
-### 4. Build for production
-```bash
-npm run build
-```
+- **Frontend**: `http://localhost:5173`
+- **Backend API**: `http://localhost:5000`
+
+---
+
+## 🔐 Admin Management Portal & Backend
+
+The app includes a dedicated **Admin Control Center** (`AdminDashboard.tsx`) with a passcode lock to manage photos & content:
+
+1. **Access Admin Portal**: Scroll to the footer and click **`Admin Portal 🔐`**.
+2. **Default Passcode**: `wedding123` (or `1234`).
+3. **Features**:
+   - 📤 **Upload Photos**: Drag & drop / select photos from any device to upload to the server.
+   - 🖼️ **Manage Gallery Grid**: View all uploaded photos and delete unwanted ones in real time.
+   - 💾 **Backend API (`server.js`)**: Uploaded images are stored in `public/uploads/` with metadata stored in `server/data/photos.json`.
 
 ---
 
@@ -85,6 +96,34 @@ You can easily use your own custom MP3 audio track or an online music URL.
    ```
 
 > **Note**: The player automatically detects YouTube links, MP3 files, or local audio. If network playback fails, it gracefully falls back to an ambient Web Audio synthesizer so music always plays!
+
+---
+
+## 📸 How to Upload Photos (Anytime & Anywhere)
+
+### Method 1: Live In-App Upload (Instant & Easy)
+1. Scroll to the **Photo Gallery** section on the website.
+2. Click the **`Upload Photo 📷`** button.
+3. Choose any image from your phone or computer, add a title/category, and click **`Add to Gallery ✨`**.
+4. The photo will instantly appear in the gallery and stay saved in browser storage!
+
+### Method 2: Adding Local Images to the Project
+1. Save your photos in `public/images/` (e.g. `public/images/reception.jpg`).
+2. Open `src/weddingConfig.ts` and add your image object to the `galleryImages` array:
+   ```typescript
+   {
+     id: "photo-custom-1",
+     title: "Reception Joy",
+     category: "celebration",
+     url: "/images/reception.jpg",
+     caption: "A magical evening with family & friends"
+   }
+   ```
+
+### Method 3: Using Online Image Links (Imgur / Cloudinary)
+1. Upload your photo to [Imgur.com](https://imgur.com) or [PostImages.org](https://postimages.org).
+2. Copy the direct image URL (e.g. `https://i.imgur.com/your-photo.jpg`).
+3. Paste the URL into `galleryImages` in `src/weddingConfig.ts`.
 
 ---
 

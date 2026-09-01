@@ -14,7 +14,7 @@ export const WeddingHero: React.FC = () => {
 
   return (
     <section id="home" className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-4 overflow-hidden bg-wedding-bg scroll-mt-24">
-      
+
       {/* Background Indian Mandala Rotating Ornament */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15 overflow-hidden">
         <svg className="w-[600px] h-[600px] sm:w-[800px] sm:h-[800px] text-wedding-gold animate-spin-slow" viewBox="0 0 100 100">
@@ -76,10 +76,10 @@ export const WeddingHero: React.FC = () => {
           <div className="absolute bottom-2 right-2 w-8 h-8 border-b-2 border-r-2 border-wedding-gold/60 rounded-br-lg" />
 
           <div className="flex flex-col items-center justify-center space-y-2">
-            
+
             {/* Bride Name */}
             <div className="font-serif text-4xl sm:text-6xl md:text-7xl font-semibold tracking-wide text-wedding-maroon">
-              {weddingConfig.brideName}
+              {weddingConfig.groomName}
             </div>
 
             {/* Decorative "&" */}
@@ -89,7 +89,7 @@ export const WeddingHero: React.FC = () => {
 
             {/* Groom Name */}
             <div className="font-serif text-4xl sm:text-6xl md:text-7xl font-semibold tracking-wide text-wedding-maroon">
-              {weddingConfig.groomName}
+              {weddingConfig.brideName}
             </div>
 
           </div>
@@ -100,7 +100,7 @@ export const WeddingHero: React.FC = () => {
               <Calendar className="w-4 h-4 text-wedding-maroon" />
               <span>{formattedDate}</span>
             </div>
-            
+
             <div className="flex items-center gap-1.5 bg-wedding-gold-light/40 px-4 py-1.5 rounded-full border border-wedding-gold/30">
               <MapPin className="w-4 h-4 text-wedding-maroon" />
               <span>{weddingConfig.weddingLocation}</span>

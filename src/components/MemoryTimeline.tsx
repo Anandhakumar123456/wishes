@@ -135,7 +135,7 @@ export const MemoryTimeline: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-wedding-maroon-deep/80 backdrop-blur-md"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-wedding-maroon-deep/85 backdrop-blur-lg"
             onClick={() => setSelectedMemory(null)}
           >
             <motion.div
@@ -143,14 +143,16 @@ export const MemoryTimeline: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl overflow-hidden"
+              className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl overflow-visible"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Prominent High-Contrast Close Button */}
               <button
                 onClick={() => setSelectedMemory(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-wedding-maroon-light/10 text-wedding-maroon hover:bg-wedding-maroon hover:text-wedding-bg transition-colors"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 p-2.5 rounded-full bg-wedding-maroon text-wedding-gold shadow-xl hover:scale-110 hover:bg-wedding-maroon-deep border border-wedding-gold/40 transition-all"
+                title="Close"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
 
               <div className="space-y-4">

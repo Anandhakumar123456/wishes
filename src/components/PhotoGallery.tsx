@@ -1,17 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Maximize2, X, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 import type { GalleryItem } from '../types';
 
-export const PhotoGallery: React.FC = () => {
+const LOCAL_STORAGE_GALLERY_KEY = 'wedding_gallery_photos_v2';
+
+interface PhotoGalleryProps {
+  photos?: GalleryItem[];
+}
+
+export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
+  const [galleryList, setGalleryList] = useState<GalleryItem[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [likedIds, setLikedIds] = useState<string[]>([]);
 
+  // Sync photos from props or localStorage or weddingConfig
+  useEffect(() => {
+    if (photos && photos.length > 0) {
+      setGalleryList(photos);
+      return;
+    }
+
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_GALLERY_KEY);
+      if (saved) {
+        setGalleryList(JSON.parse(saved));
+      } else {
+        setGalleryList(weddingConfig.galleryImages);
+      }
+    } catch (e) {
+      setGalleryList(weddingConfig.galleryImages);
+    }
+  }, [photos]);
+
   const filteredImages = filter === 'all'
-    ? weddingConfig.galleryImages
-    : weddingConfig.galleryImages.filter(img => img.category === filter);
+    ? galleryList
+    : galleryList.filter(img => img.category === filter);
 
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -41,7 +67,7 @@ export const PhotoGallery: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center space-y-3 mb-12"
+          className="text-center space-y-4 mb-12"
         >
           <div className="inline-flex items-center gap-2 text-wedding-gold font-script text-2xl">
             <Sparkles className="w-4 h-4" />
@@ -96,7 +122,7 @@ export const PhotoGallery: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  transition={{ duration: 0.5, delay: index * 0.05 }}
                   whileHover={{ y: -6, scale: 1.02 }}
                   className="relative group cursor-pointer rounded-2xl overflow-hidden glass-luxury border-gold-thin shadow-card-soft"
                   onClick={() => setSelectedIndex(index)}
@@ -151,13 +177,14 @@ export const PhotoGallery: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-wedding-maroon-deep/90 backdrop-blur-lg"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-wedding-maroon-deep/90 backdrop-blur-lg"
             onClick={() => setSelectedIndex(null)}
           >
             {/* Close Button */}
             <button
               onClick={() => setSelectedIndex(null)}
-              className="absolute top-6 right-6 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-50"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-full bg-wedding-maroon text-wedding-gold border border-wedding-gold/40 shadow-xl hover:scale-110 transition-all z-50"
+              title="Close"
             >
               <X className="w-6 h-6" />
             </button>

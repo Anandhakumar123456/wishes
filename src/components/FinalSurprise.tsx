@@ -17,7 +17,7 @@ export const FinalSurprise: React.FC = () => {
 
   return (
     <section className="relative py-28 px-4 bg-wedding-maroon-deep text-wedding-bg overflow-hidden">
-      
+
       {/* Ambient background particles glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-wedding-maroon-light/50 via-wedding-maroon-deep to-black opacity-90" />
 
@@ -76,7 +76,7 @@ export const FinalSurprise: React.FC = () => {
                 </div>
 
                 <div className="font-serif text-3xl sm:text-5xl font-bold text-white tracking-wide">
-                  {weddingConfig.brideName} & {weddingConfig.groomName} ❤️
+                  {weddingConfig.groomName} & {weddingConfig.brideName} ❤️
                 </div>
               </motion.div>
 

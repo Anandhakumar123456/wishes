@@ -31,7 +31,7 @@ export const PhotoGallery: React.FC = () => {
   };
 
   return (
-    <section id="memories" className="relative py-24 px-4 bg-wedding-ivory-warm overflow-hidden">
+    <section id="memories" className="relative py-24 px-4 bg-wedding-ivory-warm overflow-hidden scroll-mt-24">
       
       <div className="max-w-6xl mx-auto relative z-10">
 

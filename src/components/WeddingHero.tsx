@@ -13,7 +13,7 @@ export const WeddingHero: React.FC = () => {
   });
 
   return (
-    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-4 overflow-hidden bg-wedding-bg">
+    <section id="home" className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-16 px-4 overflow-hidden bg-wedding-bg scroll-mt-24">
       
       {/* Background Indian Mandala Rotating Ornament */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15 overflow-hidden">

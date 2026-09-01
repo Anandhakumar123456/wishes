@@ -4,54 +4,91 @@ import { VolumeX, Volume2 } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 import { startAmbientSynth, stopAmbientSynth } from '../utils/audioSynth';
 
+function getYouTubeVideoId(url: string): string | null {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
+
 export const MusicPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const youtubeId = getYouTubeVideoId(weddingConfig.musicFile);
 
   useEffect(() => {
-    audioRef.current = new Audio(weddingConfig.musicFile);
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.5;
+    if (!youtubeId) {
+      audioRef.current = new Audio(weddingConfig.musicFile);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.5;
 
-    const handleAudioError = () => {
-      setHasError(true);
-    };
+      const handleAudioError = () => {
+        setHasError(true);
+      };
 
-    audioRef.current.addEventListener('error', handleAudioError);
+      audioRef.current.addEventListener('error', handleAudioError);
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.removeEventListener('error', handleAudioError);
-      }
-      stopAmbientSynth();
-    };
-  }, []);
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.removeEventListener('error', handleAudioError);
+        }
+        stopAmbientSynth();
+      };
+    }
+  }, [youtubeId]);
 
   const toggleMusic = () => {
     if (isPlaying) {
-      if (audioRef.current && !hasError) {
-        audioRef.current.pause();
-      }
-      stopAmbientSynth();
       setIsPlaying(false);
+      if (youtubeId) {
+        iframeRef.current?.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
+          '*'
+        );
+      } else {
+        if (audioRef.current && !hasError) {
+          audioRef.current.pause();
+        }
+        stopAmbientSynth();
+      }
     } else {
       setIsPlaying(true);
-      if (audioRef.current && !hasError) {
-        audioRef.current.play().catch(() => {
-          // If HTML5 audio play fails due to CORS or broken URL, fallback to ambient synth!
-          setHasError(true);
-          startAmbientSynth();
-        });
+      if (youtubeId) {
+        iframeRef.current?.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
+          '*'
+        );
       } else {
-        startAmbientSynth();
+        if (audioRef.current && !hasError) {
+          audioRef.current.play().catch(() => {
+            setHasError(true);
+            startAmbientSynth();
+          });
+        } else {
+          startAmbientSynth();
+        }
       }
     }
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      {/* Hidden YouTube Iframe Player if a YouTube link is provided */}
+      {youtubeId && (
+        <iframe
+          ref={iframeRef}
+          className="absolute w-0 h-0 opacity-0 pointer-events-none -z-50"
+          width="1"
+          height="1"
+          src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&loop=1&playlist=${youtubeId}`}
+          allow="autoplay"
+          title="Wedding Music Player"
+        />
+      )}
+
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

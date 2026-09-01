@@ -7,7 +7,7 @@ export const WishSection: React.FC = () => {
   const paragraphs = weddingConfig.personalMessage.split('\n\n');
 
   return (
-    <section id="wish" className="relative py-20 px-4 bg-wedding-ivory-warm overflow-hidden">
+    <section id="wish" className="relative py-20 px-4 bg-wedding-ivory-warm overflow-hidden scroll-mt-24">
       
       {/* Background Subtle Gradient Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-wedding-blush-dark/15 rounded-full blur-3xl pointer-events-none" />

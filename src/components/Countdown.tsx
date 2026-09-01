@@ -46,7 +46,7 @@ export const Countdown: React.FC = () => {
   ];
 
   return (
-    <section id="countdown" className="relative py-20 px-4 bg-wedding-bg overflow-hidden">
+    <section id="countdown" className="relative py-20 px-4 bg-wedding-bg overflow-hidden scroll-mt-24">
       
       <div className="max-w-4xl mx-auto relative z-10 text-center space-y-8">
 

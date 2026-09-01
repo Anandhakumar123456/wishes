@@ -206,6 +206,9 @@ Wishing you both a beautiful forever. ❤️`,
   ],
 
   // --- BACKGROUND MUSIC AUDIO FILE ---
-  // Note: Standard royalty-free wedding audio string or fallback synthesizer will play automatically when user enables music
-  musicFile: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-wedding-piano-112199.mp3"
+  // Supports:
+  // 1. YouTube links (e.g. "https://www.youtube.com/watch?v=jN-aWJ5fwJI")
+  // 2. Local MP3 files in 'public/audio/wedding-song.mp3' (e.g. "/audio/wedding-song.mp3")
+  // 3. Any direct MP3 audio URL
+  musicFile: "https://www.youtube.com/watch?v=jN-aWJ5fwJI"
 };

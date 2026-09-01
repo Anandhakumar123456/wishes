@@ -13,7 +13,7 @@ export const LetterSection: React.FC = () => {
   };
 
   return (
-    <section id="letter" className="relative py-24 px-4 bg-wedding-maroon-deep text-wedding-bg overflow-hidden">
+    <section id="letter" className="relative py-24 px-4 bg-wedding-maroon-deep text-wedding-bg overflow-hidden scroll-mt-24">
       
       {/* Background Gold Radial Glow */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-wedding-maroon-light/30 via-wedding-maroon-deep to-black opacity-90" />

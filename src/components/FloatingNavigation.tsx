@@ -39,9 +39,9 @@ export const FloatingNavigation: React.FC = () => {
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, delay: 1 }}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-40 max-w-lg w-[9%] sm:w-auto"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-40 w-[95%] sm:w-auto max-w-2xl px-2 sm:px-0"
     >
-      <div className="flex items-center justify-center gap-1 sm:gap-2 px-3 py-2 rounded-full glass-luxury border-gold-thin shadow-card-soft backdrop-blur-xl">
+      <div className="flex items-center justify-between sm:justify-center gap-1 sm:gap-1.5 p-1.5 rounded-full glass-luxury border-gold-thin shadow-card-soft backdrop-blur-xl max-w-full overflow-x-auto no-scrollbar">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
@@ -50,10 +50,11 @@ export const FloatingNavigation: React.FC = () => {
             <a
               key={item.id}
               href={`#${item.id}`}
-              className={`relative px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-sans font-medium transition-all duration-300 flex items-center gap-1.5 ${isActive
-                ? 'text-wedding-maroon-deep font-semibold'
-                : 'text-wedding-maroon/70 hover:text-wedding-maroon'
-                }`}
+              className={`relative px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-sans font-medium transition-all duration-300 flex items-center justify-center gap-1.5 shrink-0 z-10 whitespace-nowrap ${
+                isActive
+                  ? 'text-wedding-maroon-deep font-semibold'
+                  : 'text-wedding-maroon/70 hover:text-wedding-maroon'
+              }`}
             >
               {isActive && (
                 <motion.div
@@ -62,7 +63,7 @@ export const FloatingNavigation: React.FC = () => {
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-wedding-maroon-deep' : 'text-wedding-gold-dark'}`} />
+              <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-wedding-maroon-deep' : 'text-wedding-gold-dark'}`} />
               <span className="hidden sm:inline">{item.label}</span>
             </a>
           );

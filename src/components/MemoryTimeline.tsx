@@ -8,7 +8,7 @@ export const MemoryTimeline: React.FC = () => {
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
 
   return (
-    <section id="story" className="relative py-24 px-4 bg-wedding-bg overflow-hidden">
+    <section id="story" className="relative py-24 px-4 bg-wedding-bg overflow-hidden scroll-mt-24">
       
       <div className="max-w-5xl mx-auto relative z-10">
 

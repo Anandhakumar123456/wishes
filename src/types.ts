@@ -32,6 +32,7 @@ export interface UserWish {
   name: string;
   message: string;
   date: string;
+  createdAt?: string;
   leafColor?: string;
 }
 

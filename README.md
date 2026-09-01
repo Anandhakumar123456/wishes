@@ -1,142 +1,127 @@
 # 💍 Elegant Digital Wedding Wishes & Memories Portal
 
-A stunning, modern, and interactive wedding website built with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS v4**, and **Framer Motion**. Designed as a luxury personalized digital invitation, memory timeline, and interactive wish platform for celebrating a special couple.
+A stunning, modern, and interactive wedding website built with **React 18**, **TypeScript**, **Express.js**, **Vite**, **Tailwind CSS v4**, and **Framer Motion**. Designed as a luxury personalized digital invitation, memory timeline, interactive wish tree, and backend-managed photo & blessing hub for celebrating a special couple.
 
 ---
 
-## ✨ Features
+## ✨ Key Features & Highlights
 
-- 💖 **Cinematic Intro Experience**: Interactive sealed envelope with ribbon animation and falling petal effects.
-- 🍃 **Interactive Wish Tree**: Organic SVG tree illustration where guests can leave custom glowing leaf blessings (persisted in `localStorage`).
-- 🎵 **Floating Music Player**: Romantic background music with seamless Web Audio ambient synthesizer fallback.
-- ⏳ **Live Wedding Countdown**: Real-time countdown timer tracking days, hours, minutes, and seconds until the big day.
-- 📸 **Interactive Photo Gallery**: Filterable photo grid with heart likes and lightbox preview modal.
-- 📜 **Memory Timeline**: Milestones of the couple's journey presented in a clean timeline view.
-- 💌 **"A Letter For You"**: Unsealable digital greeting card with celebratory petal confetti shower.
-- 🌸 **Petal Canvas Layer**: Organic HTML5 Canvas physics simulation of gently falling flower petals.
-- 🎨 **Luxury Aesthetic System**: Customized glassmorphism (`glass-luxury`), gold gradients (`#D4AF37`, `#E5C158`), and deep maroon accents (`#4A0E17`).
+- 💖 **Cinematic Intro Experience**: Interactive sealed envelope with ribbon animation and falling petal physics effects.
+- 🍃 **Organic Interactive Wish Tree**: Tapered SVG trunk and foliage canopy where guests can attach glowing wish leaves that persist to the backend database.
+- ⏱️ **Dynamic Relative Timestamps**: Wishes display real-time relative upload times (*"Just now"*, *"5 mins ago"*, *"2 hours ago"*, *"3 days ago"*).
+- 📸 **Backend Photo Gallery & Lightbox**: Masonry photo gallery with categories (*Moments*, *Celebration*, *Candid*, *Memories*), likes, and full-screen lightbox modal with `z-100` stacking isolation.
+- 🔗 **Shareable Friends Upload Link (`/upload`)**: Friends can upload photos and send wishes directly via a shareable link without needing an admin passcode.
+- 👑 **Admin Management Control Center (`/admin`)**: Passcode-protected admin portal (`wedding123`) to manage Bride/Groom names, Wedding Date, Location, Gift Giver Signature Name, photos, and guest wishes.
+- 🎵 **Continuous Background Audio Player**: Romantic background music supporting YouTube video URLs, MP3 audio files, and Web Audio synth fallback with mute/unmute control.
+- ⏳ **Live Countdown Timer**: Real-time tracker counting down days, hours, minutes, and seconds to the wedding date.
+- 📜 **Curated Memory Timeline**: Milestones of the couple's journey presented in a clean, scroll-aware timeline view.
+- 💌 **"For You, With Love" & "A Letter For You"**: Interactive unsealable digital greeting cards with customizable gift giver signature.
+- 🌸 **Petal Canvas Layer**: Organic HTML5 Canvas physics simulation of gently floating flower petals.
+- 🚀 **Express Backend API Hub (`http://localhost:5000`)**: Interactive API dashboard listing all live endpoints.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-- **Framework**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Frontend**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- **Backend API**: [Node.js](https://nodejs.org/) + [Express.js](https://expressjs.com/) + [Multer](https://github.com/expressjs/multer)
 - **Build Tool**: [Vite](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **FX**: [Canvas Confetti](https://github.com/catdad/canvas-confetti)
-- **Audio Engine**: Web HTML5 Audio + Web Audio Synth Fallback
+- **Confetti & Effects**: [Canvas Confetti](https://github.com/catdad/canvas-confetti)
+- **Audio Engine**: YouTube Iframe API + HTML5 Audio + Web Audio Synth Fallback
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Clone the repository
+### 1. Clone & Install
 ```bash
 git clone https://github.com/your-username/wedding-wishes.git
 cd wedding-wishes
-```
-
-### 2. Install dependencies
-```bash
 npm install
 ```
 
-### 3. Start Frontend & Backend API Together
+### 2. Run Both Frontend & Backend Concurrently
 ```bash
 npm run dev:all
 ```
-This runs the **Express Backend Server** (Port `5000`) and **Vite Frontend** (Port `5173`) concurrently.
 
-- **Frontend**: `http://localhost:5173`
-- **Backend API**: `http://localhost:5000`
-
----
-
-## 🔐 Admin Management Portal & Backend
-
-The app includes a dedicated **Admin Control Center** (`AdminDashboard.tsx`) with a passcode lock to manage photos & content:
-
-1. **Access Admin Portal**: Scroll to the footer and click **`Admin Portal 🔐`**.
-2. **Default Passcode**: `wedding123` (or `1234`).
-3. **Features**:
-   - 📤 **Upload Photos**: Drag & drop / select photos from any device to upload to the server.
-   - 🖼️ **Manage Gallery Grid**: View all uploaded photos and delete unwanted ones in real time.
-   - 💾 **Backend API (`server.js`)**: Uploaded images are stored in `public/uploads/` with metadata stored in `server/data/photos.json`.
+This starts both servers simultaneously:
+- ⚡ **Frontend Web App**: `http://localhost:5173`
+- 🚀 **Backend Express API & Hub**: `http://localhost:5000`
 
 ---
 
-## 🎵 How to Change the Background Audio
+## 📌 Dedicated Routes & Links
 
-You can easily use your own custom MP3 audio track or an online music URL.
-
-### Option A: Use a Local MP3 File (Recommended)
-1. Place your `.mp3` audio file into the `public/audio/` directory:
-   ```text
-   public/audio/your-wedding-song.mp3
-   ```
-2. Open `src/weddingConfig.ts` and set `musicFile` to your local file path:
-   ```typescript
-   musicFile: "/audio/your-wedding-song.mp3"
-   ```
-
-### Option B: Use a YouTube Link (e.g. `https://www.youtube.com/watch?v=...`)
-1. Open `src/weddingConfig.ts`.
-2. Paste any YouTube video URL directly into `musicFile`:
-   ```typescript
-   musicFile: "https://www.youtube.com/watch?v=jN-aWJ5fwJI"
-   ```
-
-### Option C: Use an Online MP3 Audio URL
-1. Open `src/weddingConfig.ts`.
-2. Replace `musicFile` with any direct MP3 link (HTTPS URL):
-   ```typescript
-   musicFile: "https://example.com/path-to-your-song.mp3"
-   ```
-
-> **Note**: The player automatically detects YouTube links, MP3 files, or local audio. If network playback fails, it gracefully falls back to an ambient Web Audio synthesizer so music always plays!
+| Route | Purpose | Access |
+| :--- | :--- | :--- |
+| **`http://localhost:5173`** | Main Wedding Website & Invitation | Public |
+| **`http://localhost:5173/upload`** | **Friends Shareable Link**: Upload photos & leave wishes | Public (No passcode) |
+| **`http://localhost:5173/admin`** | **Admin Control Center**: Edit details, names, date & moderate content | Protected (`wedding123`) |
+| **`http://localhost:5000`** | **Server API Hub**: Interactive REST API documentation & dashboard | Public |
 
 ---
 
-## 📸 How to Upload Photos (Anytime & Anywhere)
+## 👑 Admin Control Center (`/admin`)
 
-### Method 1: Live In-App Upload (Instant & Easy)
-1. Scroll to the **Photo Gallery** section on the website.
-2. Click the **`Upload Photo 📷`** button.
-3. Choose any image from your phone or computer, add a title/category, and click **`Add to Gallery ✨`**.
-4. The photo will instantly appear in the gallery and stay saved in browser storage!
+To edit core wedding details or moderate content:
 
-### Method 2: Adding Local Images to the Project
-1. Save your photos in `public/images/` (e.g. `public/images/reception.jpg`).
-2. Open `src/weddingConfig.ts` and add your image object to the `galleryImages` array:
-   ```typescript
-   {
-     id: "photo-custom-1",
-     title: "Reception Joy",
-     category: "celebration",
-     url: "/images/reception.jpg",
-     caption: "A magical evening with family & friends"
-   }
-   ```
-
-### Method 3: Using Online Image Links (Imgur / Cloudinary)
-1. Upload your photo to [Imgur.com](https://imgur.com) or [PostImages.org](https://postimages.org).
-2. Copy the direct image URL (e.g. `https://i.imgur.com/your-photo.jpg`).
-3. Paste the URL into `galleryImages` in `src/weddingConfig.ts`.
+1. Open **`http://localhost:5173/admin`** (or `http://localhost:5000/admin`).
+2. Enter the Admin Passcode: **`wedding123`** (or **`1234`**).
+3. **Capabilities**:
+   - ⚙️ **Details & Names**: Edit Groom Name, Bride Name, Wedding Date & Time, Location, and **Gift Giver Signature Name** (*e.g., "Anandh" or "Anand & Your Best Friends"*).
+   - 💬 **Wishes Moderation**: View all submitted guest wishes, add new blessings, or delete unwanted wishes.
+   - ➕ **Upload Photos**: Drag & drop or select image files to upload to the server.
+   - 🖼️ **Gallery Grid**: View all uploaded photos with one-click deletion.
 
 ---
 
-## ⚙️ Configuration & Customization (`weddingConfig.ts`)
+## 📸 Shareable Friends Contribution Link (`/upload`)
 
-All content and details are centralized in `src/weddingConfig.ts`. You can customize:
+Send **`http://localhost:5173/upload`** to friends so they can contribute directly:
+- **Upload Photo**: Pick an image file from any phone or computer, select a category, and publish it to the memory gallery.
+- **Send a Wish**: Enter their name (*e.g., Anandh, Janani, Rahul*) and blessing message to plant a leaf on the Wish Tree.
+- **No Password Required**: Clean, frictionless experience for guests!
 
-- **Bride & Groom Names**: `brideName`, `groomName`
-- **Wedding Date & Location**: `weddingDate` (Format: `YYYY-MM-DDTHH:MM:SS`), `weddingLocation`
-- **Personal Messages & Letter**: `personalMessage`, `letterGreeting`, `letterBody`
-- **Memory Timeline**: `memories` array (dates, titles, descriptions, photos)
-- **Photo Gallery**: `galleryImages` array (categories, captions, image URLs)
-- **Initial Wishes**: `initialWishes` list
+---
+
+## 🔌 Express Backend API Endpoints (`server.js`)
+
+All data is automatically persisted in `server/data/`:
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/config` | Fetch Bride, Groom, Date, Location, and Gift Giver Name |
+| `POST` | `/api/config` | Update and save wedding configuration |
+| `GET` | `/api/photos` | Fetch all gallery photos metadata |
+| `POST` | `/api/photos` | Upload image file (via `multer`) or image URL |
+| `DELETE` | `/api/photos/:id` | Delete photo by ID and remove image file from server |
+| `GET` | `/api/wishes` | Fetch all guest wishes with relative timestamps |
+| `POST` | `/api/wishes` | Save a new guest blessing to `wishes.json` |
+| `DELETE` | `/api/wishes/:id` | Delete wish by ID |
+| `POST` | `/api/admin/login` | Verify admin passcode |
+
+---
+
+## 🎵 Background Music Configuration
+
+Centralized in `src/weddingConfig.ts`:
+
+### Option A: YouTube Link (Current Default)
+```typescript
+musicFile: "https://www.youtube.com/watch?v=jN-aWJ5fwJI"
+```
+
+### Option B: Local MP3 File
+Place audio in `public/audio/song.mp3` and update:
+```typescript
+musicFile: "/audio/song.mp3"
+```
+
+> **Autoplay Feature**: Audio plays continuously and includes a floating mute/unmute widget (`Volume2` / `VolumeX`) on the bottom-right of the screen.
 
 ---
 
@@ -145,26 +130,37 @@ All content and details are centralized in `src/weddingConfig.ts`. You can custo
 ```text
 Wishes/
 ├── public/
-│   ├── audio/              # Store custom MP3 audio tracks here
-│   ├── favicon.svg
-│   └── icons.svg
+│   ├── uploads/            # Server uploaded photo files
+│   └── audio/              # Local MP3 tracks
+├── server/
+│   └── data/               # Persistent JSON databases
+│       ├── config.json
+│       ├── photos.json
+│       └── wishes.json
 ├── src/
-│   ├── components/         # Modular UI components
-│   │   ├── FloatingNavigation.tsx
-│   │   ├── WeddingHero.tsx
-│   │   ├── WishSection.tsx
-│   │   ├── MemoryTimeline.tsx
-│   │   ├── PhotoGallery.tsx
-│   │   ├── LetterSection.tsx
-│   │   ├── Countdown.tsx
-│   │   ├── WishTree.tsx
-│   │   ├── MusicPlayer.tsx
-│   │   └── PetalCanvas.tsx
-│   ├── utils/              # Confetti & Audio Synth utilities
+│   ├── components/         # Modular React UI components
+│   │   ├── AdminDashboard.tsx      # Admin control center modal
+│   │   ├── GuestUploadModal.tsx    # Friends shareable upload modal
+│   │   ├── FloatingNavigation.tsx  # Capsule navigation bar
+│   │   ├── WeddingHero.tsx         # Hero invitation section
+│   │   ├── WishSection.tsx        # Personal message section
+│   │   ├── MemoryTimeline.tsx      # Milestones timeline
+│   │   ├── PhotoGallery.tsx        # Masonry photo gallery
+│   │   ├── LetterSection.tsx       # Unsealable digital letter
+│   │   ├── Countdown.tsx           # Real-time countdown timer
+│   │   ├── WishTree.tsx            # Interactive organic wish tree
+│   │   ├── MusicPlayer.tsx         # Audio player with YouTube & synth
+│   │   ├── IntroAnimation.tsx      # Intro sealed envelope
+│   │   └── PetalCanvas.tsx         # HTML5 canvas falling petals
+│   ├── utils/              # Confetti, date formatters & audio synth
+│   │   ├── dateFormatter.ts        # Dynamic relative time utility
+│   │   ├── confetti.ts             # Particle confetti triggers
+│   │   └── audioSynth.ts           # Web Audio synth fallback
 │   ├── types.ts            # TypeScript interfaces
-│   ├── weddingConfig.ts    # Centralized application configuration
-│   ├── App.tsx             # Main page container layout
-│   └── main.tsx            # Entry point
+│   ├── weddingConfig.ts    # Central application configuration
+│   ├── App.tsx             # Main application & routing logic
+│   └── main.tsx            # Application entry point
+├── server.js               # Express backend API server
 ├── package.json
 └── README.md
 ```
@@ -173,4 +169,4 @@ Wishes/
 
 ## 📄 License
 
-Created with ❤️ for personal wedding celebrations. Free to customize and share!
+Created with ❤️ for personal wedding celebrations. Free to customize, share, and enjoy!

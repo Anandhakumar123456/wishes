@@ -13,29 +13,34 @@ import { ReasonsSection } from './components/ReasonsSection';
 import { FinalSurprise } from './components/FinalSurprise';
 import { MusicPlayer } from './components/MusicPlayer';
 import { AdminDashboard } from './components/AdminDashboard';
+import { GuestUploadModal } from './components/GuestUploadModal';
 import { Heart } from 'lucide-react';
 import { weddingConfig } from './weddingConfig';
-import type { GalleryItem } from './types';
+import type { GalleryItem, UserWish } from './types';
 
 const LOCAL_STORAGE_GALLERY_KEY = 'wedding_gallery_photos_v2';
+const LOCAL_STORAGE_WISHES_KEY = 'wedding_wishes_list_v2';
 const LOCAL_STORAGE_CONFIG_KEY = 'wedding_config_custom_v1';
 
 export function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isGuestUploadOpen, setIsGuestUploadOpen] = useState(false);
   const [photos, setPhotos] = useState<GalleryItem[]>([]);
+  const [wishes, setWishes] = useState<UserWish[]>([]);
   const [weddingDetails, setWeddingDetails] = useState({
     groomName: weddingConfig.groomName,
     brideName: weddingConfig.brideName,
     weddingDate: weddingConfig.weddingDate,
     weddingLocation: weddingConfig.weddingLocation,
+    yourName: weddingConfig.yourName,
     heroSubtitle: weddingConfig.heroSubtitle,
     personalMessage: weddingConfig.personalMessage,
   });
 
-  // Dedicated Route Detection for /admin, #admin, or trailing slash /admin/
+  // Route Detection for /admin (Admin Panel) & /upload (Guest Shareable Link)
   useEffect(() => {
-    const checkAdminRoute = () => {
+    const checkRoutes = () => {
       const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
       const hash = window.location.hash.toLowerCase();
       const search = window.location.search.toLowerCase();
@@ -43,19 +48,30 @@ export function App() {
       if (path === '/admin' || path.endsWith('/admin') || hash === '#admin' || search.includes('admin=true')) {
         setIsAdminOpen(true);
         setShowIntro(false);
+      } else if (
+        path === '/upload' ||
+        path.endsWith('/upload') ||
+        path === '/contribute' ||
+        path.endsWith('/contribute') ||
+        hash === '#upload' ||
+        hash === '#contribute' ||
+        search.includes('upload=true')
+      ) {
+        setIsGuestUploadOpen(true);
+        setShowIntro(false);
       }
     };
 
-    checkAdminRoute();
-    window.addEventListener('popstate', checkAdminRoute);
-    window.addEventListener('hashchange', checkAdminRoute);
+    checkRoutes();
+    window.addEventListener('popstate', checkRoutes);
+    window.addEventListener('hashchange', checkRoutes);
     return () => {
-      window.removeEventListener('popstate', checkAdminRoute);
-      window.removeEventListener('hashchange', checkAdminRoute);
+      window.removeEventListener('popstate', checkRoutes);
+      window.removeEventListener('hashchange', checkRoutes);
     };
   }, []);
 
-  // Load config & photos from API backend or localStorage or weddingConfig
+  // Load config, photos & wishes from API backend or localStorage or weddingConfig
   useEffect(() => {
     async function fetchInitialData() {
       // 1. Fetch Config
@@ -86,20 +102,42 @@ export function App() {
           const data = await res.json();
           if (data && data.length > 0) {
             setPhotos(data);
+          }
+        }
+      } catch (e) {
+        try {
+          const savedPhotos = localStorage.getItem(LOCAL_STORAGE_GALLERY_KEY);
+          if (savedPhotos) {
+            setPhotos(JSON.parse(savedPhotos));
+          } else {
+            setPhotos(weddingConfig.galleryImages);
+          }
+        } catch (err) {
+          setPhotos(weddingConfig.galleryImages);
+        }
+      }
+
+      // 3. Fetch Wishes
+      try {
+        const res = await fetch('/api/wishes');
+        if (res.ok) {
+          const wishData = await res.json();
+          if (wishData && wishData.length > 0) {
+            setWishes(wishData);
             return;
           }
         }
       } catch (e) {}
 
       try {
-        const savedPhotos = localStorage.getItem(LOCAL_STORAGE_GALLERY_KEY);
-        if (savedPhotos) {
-          setPhotos(JSON.parse(savedPhotos));
+        const savedWishes = localStorage.getItem(LOCAL_STORAGE_WISHES_KEY);
+        if (savedWishes) {
+          setWishes(JSON.parse(savedWishes));
         } else {
-          setPhotos(weddingConfig.galleryImages);
+          setWishes(weddingConfig.initialWishes);
         }
       } catch (e) {
-        setPhotos(weddingConfig.galleryImages);
+        setWishes(weddingConfig.initialWishes);
       }
     }
 
@@ -137,6 +175,22 @@ export function App() {
     }
   };
 
+  const handleWishAdded = (newWish: UserWish) => {
+    const updated = [newWish, ...wishes];
+    setWishes(updated);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_WISHES_KEY, JSON.stringify(updated));
+    } catch (e) {}
+  };
+
+  const handleWishDeleted = (id: string) => {
+    const updated = wishes.filter(w => w.id !== id);
+    setWishes(updated);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_WISHES_KEY, JSON.stringify(updated));
+    } catch (e) {}
+  };
+
   return (
     <div className="min-h-screen bg-wedding-bg text-wedding-maroon relative font-sans selection:bg-wedding-gold/30">
 
@@ -159,7 +213,7 @@ export function App() {
             <PhotoGallery photos={photos} />
             <LetterSection />
             <Countdown />
-            <WishTree />
+            <WishTree wishes={wishes} onWishAdded={handleWishAdded} />
             <ReasonsSection />
             <FinalSurprise />
           </main>
@@ -172,16 +226,32 @@ export function App() {
             isOpen={isAdminOpen}
             onClose={() => {
               setIsAdminOpen(false);
-              // Clean URL if closed
               if (window.location.pathname.toLowerCase() === '/admin') {
                 window.history.pushState({}, '', '/');
               }
             }}
             photos={photos}
+            wishes={wishes}
             onPhotoAdded={handlePhotoAdded}
             onPhotoDeleted={handlePhotoDeleted}
+            onWishAdded={handleWishAdded}
+            onWishDeleted={handleWishDeleted}
             weddingDetails={weddingDetails}
             onSaveDetails={handleSaveDetails}
+          />
+
+          {/* Guest Shareable Photo & Wish Upload Modal */}
+          <GuestUploadModal
+            isOpen={isGuestUploadOpen}
+            onClose={() => {
+              setIsGuestUploadOpen(false);
+              const path = window.location.pathname.toLowerCase();
+              if (path.includes('/upload') || path.includes('/contribute')) {
+                window.history.pushState({}, '', '/');
+              }
+            }}
+            onPhotoAdded={handlePhotoAdded}
+            onWishAdded={handleWishAdded}
           />
 
           {/* Footer */}

@@ -4,59 +4,98 @@ import { Sparkles, Send, Leaf, Heart, X } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
 import type { UserWish } from '../types';
 import { triggerGoldConfetti } from '../utils/confetti';
+import { formatRelativeTime } from '../utils/dateFormatter';
 
 const LOCAL_STORAGE_KEY = 'wedding_wishes_list_v1';
 
-export const WishTree: React.FC = () => {
+interface WishTreeProps {
+  wishes?: UserWish[];
+  onWishAdded?: (wish: UserWish) => void;
+}
+
+export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAdded }) => {
   const [wishes, setWishes] = useState<UserWish[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [messageInput, setMessageInput] = useState('');
   const [activeWish, setActiveWish] = useState<UserWish | null>(null);
 
-  // Load from localStorage or initial seed
+  // Sync from props, API or localStorage
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        setWishes(JSON.parse(saved));
-      } else {
+    if (propWishes && propWishes.length > 0) {
+      setWishes(propWishes);
+      return;
+    }
+
+    async function fetchWishes() {
+      try {
+        const res = await fetch('/api/wishes');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setWishes(data);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          setWishes(JSON.parse(saved));
+        } else {
+          setWishes(weddingConfig.initialWishes);
+        }
+      } catch (e) {
         setWishes(weddingConfig.initialWishes);
       }
-    } catch (e) {
-      setWishes(weddingConfig.initialWishes);
     }
-  }, []);
 
-  // Save to localStorage when wishes change
-  const saveWishes = (newWishes: UserWish[]) => {
-    setWishes(newWishes);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newWishes));
-    } catch (e) {
-      console.warn("Could not save to localStorage", e);
-    }
-  };
+    fetchWishes();
+  }, [propWishes]);
 
-  const handleSubmitWish = (e: React.FormEvent) => {
+  const handleSubmitWish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim() || !messageInput.trim()) return;
 
     const colors = ['#E5C158', '#F4C2C2', '#93C5FD', '#FDE047', '#C084FC'];
-    const newWish: UserWish = {
-      id: `wish-${Date.now()}`,
+    const payload = {
       name: nameInput.trim(),
       message: messageInput.trim(),
-      date: 'Just now',
       leafColor: colors[Math.floor(Math.random() * colors.length)]
     };
 
-    const updated = [newWish, ...wishes];
-    saveWishes(updated);
+    let createdWish: UserWish = {
+      id: `wish-${Date.now()}`,
+      ...payload,
+      date: 'Just now'
+    };
+
+    try {
+      const res = await fetch('/api/wishes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        createdWish = await res.json();
+      }
+    } catch (err) {}
+
+    if (onWishAdded) {
+      onWishAdded(createdWish);
+    } else {
+      const updated = [createdWish, ...wishes];
+      setWishes(updated);
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {}
+    }
+
     setNameInput('');
     setMessageInput('');
     setIsModalOpen(false);
-    setActiveWish(newWish);
+    setActiveWish(createdWish);
     triggerGoldConfetti();
   };
 
@@ -355,7 +394,7 @@ export const WishTree: React.FC = () => {
                   <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
                   {wish.name}
                 </span>
-                <span className="text-xs text-wedding-maroon/50">{wish.date}</span>
+                <span className="text-xs text-wedding-maroon/50">{formatRelativeTime(wish.createdAt, wish.date)}</span>
               </div>
               <p className="font-sans text-sm text-wedding-maroon/80 leading-relaxed italic">
                 "{wish.message}"

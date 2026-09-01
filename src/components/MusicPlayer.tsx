@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { VolumeX, Volume2 } from 'lucide-react';
 import { weddingConfig } from '../weddingConfig';
@@ -11,13 +11,47 @@ function getYouTubeVideoId(url: string): string | null {
 }
 
 export const MusicPlayer: React.FC = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [hasError, setHasError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const hasInteractedRef = useRef(false);
 
   const youtubeId = getYouTubeVideoId(weddingConfig.musicFile);
 
+  const playAudio = useCallback(() => {
+    if (youtubeId) {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
+        '*'
+      );
+    } else {
+      if (audioRef.current && !hasError) {
+        audioRef.current.play().catch(() => {
+          setHasError(true);
+          startAmbientSynth();
+        });
+      } else {
+        startAmbientSynth();
+      }
+    }
+  }, [youtubeId, hasError]);
+
+  const pauseAudio = useCallback(() => {
+    if (youtubeId) {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
+        '*'
+      );
+    } else {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      stopAmbientSynth();
+    }
+  }, [youtubeId]);
+
+  // Audio setup & Autoplay handler
   useEffect(() => {
     if (!youtubeId) {
       audioRef.current = new Audio(weddingConfig.musicFile);
@@ -29,7 +63,6 @@ export const MusicPlayer: React.FC = () => {
       };
 
       audioRef.current.addEventListener('error', handleAudioError);
-
       return () => {
         if (audioRef.current) {
           audioRef.current.pause();
@@ -40,50 +73,52 @@ export const MusicPlayer: React.FC = () => {
     }
   }, [youtubeId]);
 
+  // Autoplay on mount & User Interaction trigger
+  useEffect(() => {
+    const handleFirstUserGesture = () => {
+      if (!hasInteractedRef.current && isPlaying) {
+        hasInteractedRef.current = true;
+        playAudio();
+      }
+    };
+
+    // Attempt instant autoplay after short delay for iframe/audio loading
+    const timer = setTimeout(() => {
+      if (isPlaying) {
+        playAudio();
+      }
+    }, 800);
+
+    window.addEventListener('click', handleFirstUserGesture, { once: true });
+    window.addEventListener('touchstart', handleFirstUserGesture, { once: true });
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('click', handleFirstUserGesture);
+      window.removeEventListener('touchstart', handleFirstUserGesture);
+    };
+  }, [isPlaying, playAudio]);
+
   const toggleMusic = () => {
     if (isPlaying) {
       setIsPlaying(false);
-      if (youtubeId) {
-        iframeRef.current?.contentWindow?.postMessage(
-          JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
-          '*'
-        );
-      } else {
-        if (audioRef.current && !hasError) {
-          audioRef.current.pause();
-        }
-        stopAmbientSynth();
-      }
+      pauseAudio();
     } else {
       setIsPlaying(true);
-      if (youtubeId) {
-        iframeRef.current?.contentWindow?.postMessage(
-          JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-          '*'
-        );
-      } else {
-        if (audioRef.current && !hasError) {
-          audioRef.current.play().catch(() => {
-            setHasError(true);
-            startAmbientSynth();
-          });
-        } else {
-          startAmbientSynth();
-        }
-      }
+      playAudio();
     }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Hidden YouTube Iframe Player if a YouTube link is provided */}
+    <div className="fixed bottom-6 right-6 z-[90]">
+      {/* Hidden YouTube Iframe Player */}
       {youtubeId && (
         <iframe
           ref={iframeRef}
           className="absolute w-0 h-0 opacity-0 pointer-events-none -z-50"
           width="1"
           height="1"
-          src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&loop=1&playlist=${youtubeId}`}
+          src={`https://www.youtube.com/embed/${youtubeId}?enablejsapi=1&autoplay=1&loop=1&playlist=${youtubeId}`}
           allow="autoplay"
           title="Wedding Music Player"
         />

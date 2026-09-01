@@ -20,6 +20,7 @@ const uploadDir = path.join(__dirname, 'public', 'uploads');
 const dataDir = path.join(__dirname, 'server', 'data');
 const photosJsonPath = path.join(dataDir, 'photos.json');
 const configJsonPath = path.join(dataDir, 'config.json');
+const wishesJsonPath = path.join(dataDir, 'wishes.json');
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -34,7 +35,20 @@ if (!fs.existsSync(configJsonPath)) {
   fs.writeFileSync(configJsonPath, JSON.stringify({}));
 }
 
-// Serve uploaded files statically
+const nowTimestamp = Date.now();
+const defaultWishes = [
+  { id: 'wish-1', name: 'Pranesh', message: 'Happy married life', date: 'Just now', createdAt: new Date(nowTimestamp - 1000 * 60 * 2).toISOString(), leafColor: '#E5C158' },
+  { id: 'wish-2', name: 'Anandh', message: 'i wish you married life', date: '5 mins ago', createdAt: new Date(nowTimestamp - 1000 * 60 * 5).toISOString(), leafColor: '#F4C2C2' },
+  { id: 'wish-3', name: 'Janani', message: 'May your forever be even more beautiful than your wildest dreams! So happy for you!', date: '30 mins ago', createdAt: new Date(nowTimestamp - 1000 * 60 * 30).toISOString(), leafColor: '#93C5FD' },
+  { id: 'wish-4', name: 'Deepika', message: 'Wishing you both a lifetime of laughter, endless chai dates, and sweet adventures!', date: '1 hour ago', createdAt: new Date(nowTimestamp - 1000 * 60 * 60).toISOString(), leafColor: '#FDE047' },
+  { id: 'wish-5', name: 'Thangavel', message: 'Congratulations! Wishing you endless bliss and love in your journey together.', date: '2 hours ago', createdAt: new Date(nowTimestamp - 1000 * 60 * 120).toISOString(), leafColor: '#C084FC' }
+];
+
+if (!fs.existsSync(wishesJsonPath)) {
+  fs.writeFileSync(wishesJsonPath, JSON.stringify(defaultWishes, null, 2));
+}
+
+// Serve uploaded image files statically
 app.use('/uploads', express.static(uploadDir));
 
 // Multer Storage Configuration
@@ -78,114 +92,23 @@ function saveConfig(config) {
   fs.writeFileSync(configJsonPath, JSON.stringify(config, null, 2));
 }
 
-// --- API ENDPOINTS ---
-
-// 1. Admin Passcode Verification
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding123';
-
-app.get('/api/admin/login', (req, res) => {
-  res.json({
-    status: 'Admin Auth Endpoint Active',
-    method: 'POST',
-    description: 'Send JSON body { "password": "your-passcode" } to authenticate',
-    defaultPasscode: 'wedding123'
-  });
-});
-
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  if (password === ADMIN_PASSWORD || password === '1234') {
-    res.json({ success: true, message: 'Admin authenticated' });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid Admin Password' });
+function getWishes() {
+  try {
+    const raw = fs.readFileSync(wishesJsonPath, 'utf8');
+    const parsed = JSON.parse(raw);
+    return parsed.length > 0 ? parsed : defaultWishes;
+  } catch (e) {
+    return defaultWishes;
   }
-});
-
-app.get(['/admin', '/admin/*'], (req, res) => {
-  res.redirect('http://localhost:5173/admin');
-});
-
-// 2. Get & Update Wedding Configuration (Groom, Bride, Date, Location, etc.)
-app.get('/api/config', (req, res) => {
-  const customConfig = getConfig();
-  res.json(customConfig);
-});
-
-app.post('/api/config', (req, res) => {
-  const newConfig = req.body;
-  const existing = getConfig();
-  const updated = { ...existing, ...newConfig };
-  saveConfig(updated);
-  res.json({ success: true, config: updated });
-});
-
-// 3. Get All Gallery Photos
-app.get('/api/photos', (req, res) => {
-  const photos = getPhotos();
-  res.json(photos);
-});
-
-// 4. Upload Photo (File or URL)
-app.post('/api/photos', upload.single('image'), (req, res) => {
-  const { title, category, caption, imageUrl } = req.body;
-  let finalUrl = '';
-
-  if (req.file) {
-    finalUrl = `/uploads/${req.file.filename}`;
-  } else if (imageUrl) {
-    finalUrl = imageUrl;
-  } else {
-    return res.status(400).json({ error: 'No image file or URL provided' });
-  }
-
-  const newPhoto = {
-    id: 'photo-' + Date.now(),
-    title: title || 'Wedding Memory',
-    category: category || 'moments',
-    caption: caption || 'Captured with love',
-    url: finalUrl,
-    createdAt: new Date().toISOString()
-  };
-
-  const photos = getPhotos();
-  photos.unshift(newPhoto);
-  savePhotos(photos);
-
-  res.status(201).json(newPhoto);
-});
-
-// 5. Delete Photo by ID
-app.delete('/api/photos/:id', (req, res) => {
-  const { id } = req.params;
-  let photos = getPhotos();
-  const target = photos.find(p => p.id === id);
-
-  if (target) {
-    if (target.url.startsWith('/uploads/')) {
-      const filePath = path.join(uploadDir, path.basename(target.url));
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (e) {
-          console.warn('Could not delete file:', filePath);
-        }
-      }
-    }
-    photos = photos.filter(p => p.id !== id);
-    savePhotos(photos);
-    res.json({ success: true, message: 'Photo deleted' });
-  } else {
-    res.status(404).json({ error: 'Photo not found' });
-  }
-});
-
-// Serve frontend dist build if present
-const distDir = path.join(__dirname, 'dist');
-if (fs.existsSync(distDir)) {
-  app.use(express.static(distDir));
 }
 
-// Root Route Handler - Interactive API Hub & Frontend Redirect
+function saveWishes(wishes) {
+  fs.writeFileSync(wishesJsonPath, JSON.stringify(wishes, null, 2));
+}
+
+// --- API & REDIRECT ENDPOINTS ---
+
+// 1. Root Route Handler - Interactive API & Server Hub
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -298,38 +221,180 @@ app.get('/', (req, res) => {
         </a>
 
         <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #AA771C; margin-bottom: 14px;">
-          Interactive API Endpoints
+          Interactive Endpoints & Links
         </div>
 
         <div class="grid">
+          <a href="/upload" target="_blank" class="api-card">
+            <span class="badge get">FRIENDS LINK</span>
+            <div class="api-title">📸 Shareable Contribution Link</div>
+            <div class="api-desc">Send to friends to let them upload photos & leave wishes directly (No passcode)</div>
+          </a>
+
+          <a href="/admin" target="_blank" class="api-card">
+            <span class="badge get">ADMIN</span>
+            <div class="api-title">👑 Admin Control Center</div>
+            <div class="api-desc">Passcode protected panel for editing wedding details, date & full moderation</div>
+          </a>
+
           <a href="/api/photos" target="_blank" class="api-card">
             <span class="badge get">GET</span>
-            <div class="api-title">📸 Photos API</div>
-            <div class="api-desc">View all gallery photos stored in backend database</div>
+            <div class="api-title">🖼️ Photos API</div>
+            <div class="api-desc">View all gallery photos JSON database</div>
           </a>
 
-          <a href="/api/config" target="_blank" class="api-card">
+          <a href="/api/wishes" target="_blank" class="api-card">
             <span class="badge get">GET</span>
-            <div class="api-title">⚙️ Config API</div>
-            <div class="api-desc">Fetch Groom, Bride, Date & Location parameters</div>
-          </a>
-
-          <a href="/api/admin/login" target="_blank" class="api-card">
-            <span class="badge post">API</span>
-            <div class="api-title">🔑 Admin Auth Info</div>
-            <div class="api-desc">View API authentication endpoint specifications</div>
-          </a>
-
-          <a href="/admin" class="api-card">
-            <span class="badge get">LAUNCH</span>
-            <div class="api-title">👑 Admin Control Center</div>
-            <div class="api-desc">Open Admin Dashboard to edit details & photos</div>
+            <div class="api-title">💬 Wishes API</div>
+            <div class="api-desc">View all guest blessings & wishes JSON database</div>
           </a>
         </div>
       </div>
     </body>
     </html>
   `);
+});
+
+// 2. Shareable Friends Link Redirect
+app.get('/upload', (req, res) => {
+  res.redirect('http://localhost:5173/upload');
+});
+
+// 3. Admin Control Center Redirect
+app.get('/admin', (req, res) => {
+  res.redirect('http://localhost:5173/admin');
+});
+
+// 4. Admin Passcode Verification API
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding123';
+
+app.get('/api/admin/login', (req, res) => {
+  res.json({
+    status: 'Admin Auth Endpoint Active',
+    method: 'POST',
+    description: 'Send JSON body { "password": "your-passcode" } to authenticate',
+    defaultPasscode: 'wedding123'
+  });
+});
+
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD || password === '1234') {
+    res.json({ success: true, message: 'Admin authenticated' });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid Admin Password' });
+  }
+});
+
+// 5. Get & Update Wedding Configuration
+app.get('/api/config', (req, res) => {
+  const customConfig = getConfig();
+  res.json(customConfig);
+});
+
+app.post('/api/config', (req, res) => {
+  const newConfig = req.body;
+  const existing = getConfig();
+  const updated = { ...existing, ...newConfig };
+  saveConfig(updated);
+  res.json({ success: true, config: updated });
+});
+
+// 6. Get All Gallery Photos
+app.get('/api/photos', (req, res) => {
+  const photos = getPhotos();
+  res.json(photos);
+});
+
+// 7. Upload Photo (File or URL)
+app.post('/api/photos', upload.single('image'), (req, res) => {
+  const { title, category, caption, imageUrl } = req.body;
+  let finalUrl = '';
+
+  if (req.file) {
+    finalUrl = `/uploads/${req.file.filename}`;
+  } else if (imageUrl) {
+    finalUrl = imageUrl;
+  } else {
+    return res.status(400).json({ error: 'No image file or URL provided' });
+  }
+
+  const newPhoto = {
+    id: 'photo-' + Date.now(),
+    title: title || 'Wedding Memory',
+    category: category || 'moments',
+    caption: caption || 'Captured with love',
+    url: finalUrl,
+    createdAt: new Date().toISOString()
+  };
+
+  const photos = getPhotos();
+  photos.unshift(newPhoto);
+  savePhotos(photos);
+
+  res.status(201).json(newPhoto);
+});
+
+// 8. Delete Photo by ID
+app.delete('/api/photos/:id', (req, res) => {
+  const { id } = req.params;
+  let photos = getPhotos();
+  const target = photos.find(p => p.id === id);
+
+  if (target) {
+    if (target.url.startsWith('/uploads/')) {
+      const filePath = path.join(uploadDir, path.basename(target.url));
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.warn('Could not delete file:', filePath);
+        }
+      }
+    }
+    photos = photos.filter(p => p.id !== id);
+    savePhotos(photos);
+    res.json({ success: true, message: 'Photo deleted' });
+  } else {
+    res.status(404).json({ error: 'Photo not found' });
+  }
+});
+
+// 9. Get, Post & Delete Wishes
+app.get('/api/wishes', (req, res) => {
+  const wishes = getWishes();
+  res.json(wishes);
+});
+
+app.post('/api/wishes', (req, res) => {
+  const { name, message, leafColor } = req.body;
+  if (!name || !message) {
+    return res.status(400).json({ error: 'Name and message are required' });
+  }
+
+  const colors = ['#E5C158', '#F4C2C2', '#93C5FD', '#FDE047', '#C084FC'];
+  const nowIso = new Date().toISOString();
+  const newWish = {
+    id: 'wish-' + Date.now(),
+    name: name.trim(),
+    message: message.trim(),
+    createdAt: nowIso,
+    date: 'Just now',
+    leafColor: leafColor || colors[Math.floor(Math.random() * colors.length)]
+  };
+
+  const wishes = getWishes();
+  wishes.unshift(newWish);
+  saveWishes(wishes);
+  res.status(201).json(newWish);
+});
+
+app.delete('/api/wishes/:id', (req, res) => {
+  const { id } = req.params;
+  let wishes = getWishes();
+  wishes = wishes.filter(w => w.id !== id);
+  saveWishes(wishes);
+  res.json({ success: true, message: 'Wish deleted' });
 });
 
 // Start Server

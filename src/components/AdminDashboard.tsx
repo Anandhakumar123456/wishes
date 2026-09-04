@@ -67,6 +67,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [wishName, setWishName] = useState('');
   const [wishText, setWishText] = useState('');
 
+  const [, setTick] = useState(0);
+
+  // Live timer interval to automatically update relative timestamps
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [isOpen]);
+
   // Sync props when opening
   useEffect(() => {
     setGroomName(weddingDetails.groomName);
@@ -90,7 +101,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleSaveWeddingDetails = async (e: React.FormEvent) => {
+  const handleSaveWeddingDetails = (e: React.FormEvent) => {
     e.preventDefault();
     setSaveSuccessMsg('');
 
@@ -105,14 +116,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     };
 
     onSaveDetails(newDetails);
-
-    try {
-      await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newDetails)
-      });
-    } catch (err) {}
 
     setSaveSuccessMsg('Wedding details & gift giver name updated successfully!');
     triggerGoldConfetti();
@@ -131,102 +134,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleUploadSubmit = async (e: React.FormEvent) => {
+  const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || (!file && !previewUrl)) return;
 
     setIsSubmitting(true);
 
-    try {
-      const formData = new FormData();
-      formData.append('title', title.trim());
-      formData.append('caption', caption.trim() || 'Uploaded via Admin');
-      formData.append('category', category);
-      if (file) {
-        formData.append('image', file);
-      } else if (previewUrl) {
-        formData.append('imageUrl', previewUrl);
-      }
+    const newPhoto: GalleryItem = {
+      id: `photo-${Date.now()}`,
+      title: title.trim(),
+      caption: caption.trim() || 'Uploaded via Admin',
+      category,
+      url: previewUrl || '',
+    };
 
-      const res = await fetch('/api/photos', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        const newPhoto: GalleryItem = await res.json();
-        onPhotoAdded(newPhoto);
-      } else {
-        const fallbackItem: GalleryItem = {
-          id: `photo-${Date.now()}`,
-          title: title.trim(),
-          caption: caption.trim() || 'Uploaded via Admin',
-          category,
-          url: previewUrl || '',
-        };
-        onPhotoAdded(fallbackItem);
-      }
-
-      triggerGoldConfetti();
-      setTitle('');
-      setCaption('');
-      setFile(null);
-      setPreviewUrl(null);
-      setActiveTab('photos');
-    } catch (err) {
-      const fallbackItem: GalleryItem = {
-        id: `photo-${Date.now()}`,
-        title: title.trim(),
-        caption: caption.trim() || 'Uploaded via Admin',
-        category,
-        url: previewUrl || '',
-      };
-      onPhotoAdded(fallbackItem);
-      triggerGoldConfetti();
-      setTitle('');
-      setCaption('');
-      setFile(null);
-      setPreviewUrl(null);
-      setActiveTab('photos');
-    } finally {
-      setIsSubmitting(false);
-    }
+    onPhotoAdded(newPhoto);
+    triggerGoldConfetti();
+    setTitle('');
+    setCaption('');
+    setFile(null);
+    setPreviewUrl(null);
+    setActiveTab('photos');
+    setIsSubmitting(false);
   };
 
-  const handleDeletePhoto = async (id: string) => {
-    try {
-      await fetch(`/api/photos/${id}`, { method: 'DELETE' });
-    } catch (e) {}
+  const handleDeletePhoto = (id: string) => {
     onPhotoDeleted(id);
   };
 
-  const handleAddWishSubmit = async (e: React.FormEvent) => {
+  const handleAddWishSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!wishName.trim() || !wishText.trim()) return;
 
     const colors = ['#E5C158', '#F4C2C2', '#93C5FD', '#FDE047', '#C084FC'];
-    const payload = {
+    const createdWish: UserWish = {
+      id: `wish-${Date.now()}`,
       name: wishName.trim(),
       message: wishText.trim(),
-      leafColor: colors[Math.floor(Math.random() * colors.length)]
+      leafColor: colors[Math.floor(Math.random() * colors.length)],
+      date: 'Just now',
+      createdAt: new Date().toISOString()
     };
 
-    try {
-      const res = await fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const created: UserWish = await res.json();
-        onWishAdded(created);
-      } else {
-        onWishAdded({ id: `wish-${Date.now()}`, ...payload, date: 'Just now' });
-      }
-    } catch (e) {
-      onWishAdded({ id: `wish-${Date.now()}`, ...payload, date: 'Just now' });
-    }
-
+    onWishAdded(createdWish);
     triggerGoldConfetti();
     setWishName('');
     setWishText('');
@@ -234,10 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setSaveSuccessMsg(''), 4000);
   };
 
-  const handleDeleteWish = async (id: string) => {
-    try {
-      await fetch(`/api/wishes/${id}`, { method: 'DELETE' });
-    } catch (e) {}
+  const handleDeleteWish = (id: string) => {
     onWishDeleted(id);
   };
 
@@ -249,14 +196,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-wedding-maroon-deep/85 backdrop-blur-lg"
+        className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 bg-black/85 backdrop-blur-md overflow-y-auto"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+          className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl space-y-6 my-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Prominent High-Contrast Close Button */}
@@ -339,11 +286,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <button
                     onClick={() => setActiveTab('details')}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      activeTab === 'details'
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'details'
                         ? 'bg-wedding-maroon text-wedding-gold shadow-md'
                         : 'bg-wedding-ivory text-wedding-maroon/70 hover:bg-wedding-gold/10'
-                    }`}
+                      }`}
                   >
                     <Settings className="w-3.5 h-3.5" />
                     <span>⚙️ Details & Names</span>
@@ -351,11 +297,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <button
                     onClick={() => setActiveTab('wishes')}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      activeTab === 'wishes'
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'wishes'
                         ? 'bg-wedding-maroon text-wedding-gold shadow-md'
                         : 'bg-wedding-ivory text-wedding-maroon/70 hover:bg-wedding-gold/10'
-                    }`}
+                      }`}
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     <span>💬 Wishes ({wishes.length})</span>
@@ -363,11 +308,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <button
                     onClick={() => setActiveTab('upload')}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      activeTab === 'upload'
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'upload'
                         ? 'bg-wedding-maroon text-wedding-gold shadow-md'
                         : 'bg-wedding-ivory text-wedding-maroon/70 hover:bg-wedding-gold/10'
-                    }`}
+                      }`}
                   >
                     <Upload className="w-3.5 h-3.5" />
                     <span>➕ Add Photo</span>
@@ -375,11 +319,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <button
                     onClick={() => setActiveTab('photos')}
-                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      activeTab === 'photos'
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'photos'
                         ? 'bg-wedding-maroon text-wedding-gold shadow-md'
                         : 'bg-wedding-ivory text-wedding-maroon/70 hover:bg-wedding-gold/10'
-                    }`}
+                      }`}
                   >
                     <ImageIcon className="w-3.5 h-3.5" />
                     <span>🖼️ Gallery ({photos.length})</span>

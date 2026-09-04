@@ -46,101 +46,48 @@ export const GuestUploadModal: React.FC<GuestUploadModalProps> = ({
     }
   };
 
-  const handlePhotoSubmit = async (e: React.FormEvent) => {
+  const handlePhotoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || (!file && !previewUrl)) return;
 
     setIsSubmittingPhoto(true);
 
-    try {
-      const formData = new FormData();
-      formData.append('title', title.trim());
-      formData.append('caption', caption.trim() || 'Shared by a loving friend');
-      formData.append('category', category);
-      if (file) {
-        formData.append('image', file);
-      } else if (previewUrl) {
-        formData.append('imageUrl', previewUrl);
-      }
+    const newPhoto: GalleryItem = {
+      id: `photo-${Date.now()}`,
+      title: title.trim(),
+      caption: caption.trim() || 'Shared by a loving friend',
+      category,
+      url: previewUrl || '',
+    };
 
-      const res = await fetch('/api/photos', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        const newPhoto: GalleryItem = await res.json();
-        onPhotoAdded(newPhoto);
-      } else {
-        const fallbackItem: GalleryItem = {
-          id: `photo-${Date.now()}`,
-          title: title.trim(),
-          caption: caption.trim() || 'Shared by a loving friend',
-          category,
-          url: previewUrl || '',
-        };
-        onPhotoAdded(fallbackItem);
-      }
-
-      triggerGoldConfetti();
-      setTitle('');
-      setCaption('');
-      setFile(null);
-      setPreviewUrl(null);
-      setSuccessMsg('Photo shared successfully to the memory gallery! 🎉');
-      setTimeout(() => setSuccessMsg(''), 4000);
-    } catch (err) {
-      const fallbackItem: GalleryItem = {
-        id: `photo-${Date.now()}`,
-        title: title.trim(),
-        caption: caption.trim() || 'Shared by a loving friend',
-        category,
-        url: previewUrl || '',
-      };
-      onPhotoAdded(fallbackItem);
-      triggerGoldConfetti();
-      setTitle('');
-      setCaption('');
-      setFile(null);
-      setPreviewUrl(null);
-      setSuccessMsg('Photo shared successfully! 🎉');
-      setTimeout(() => setSuccessMsg(''), 4000);
-    } finally {
-      setIsSubmittingPhoto(false);
-    }
+    onPhotoAdded(newPhoto);
+    triggerGoldConfetti();
+    setTitle('');
+    setCaption('');
+    setFile(null);
+    setPreviewUrl(null);
+    setSuccessMsg('Photo shared successfully to the memory gallery! 🎉');
+    setTimeout(() => setSuccessMsg(''), 4000);
+    setIsSubmittingPhoto(false);
   };
 
-  const handleWishSubmit = async (e: React.FormEvent) => {
+  const handleWishSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!wishName.trim() || !wishText.trim()) return;
 
     setIsSubmittingWish(true);
     const colors = ['#E5C158', '#F4C2C2', '#93C5FD', '#FDE047', '#C084FC'];
-    const payload = {
+    const newWish: UserWish = {
+      id: `wish-${Date.now()}`,
       name: wishName.trim(),
       message: wishText.trim(),
-      leafColor: colors[Math.floor(Math.random() * colors.length)]
+      leafColor: colors[Math.floor(Math.random() * colors.length)],
+      date: 'Just now',
+      createdAt: new Date().toISOString()
     };
 
-    try {
-      const res = await fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        const created: UserWish = await res.json();
-        onWishAdded(created);
-      } else {
-        onWishAdded({ id: `wish-${Date.now()}`, ...payload, date: 'Just now' });
-      }
-    } catch (e) {
-      onWishAdded({ id: `wish-${Date.now()}`, ...payload, date: 'Just now' });
-    } finally {
-      setIsSubmittingWish(false);
-    }
-
+    onWishAdded(newWish);
+    setIsSubmittingWish(false);
     triggerGoldConfetti();
     setWishName('');
     setWishText('');
@@ -156,14 +103,14 @@ export const GuestUploadModal: React.FC<GuestUploadModalProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-wedding-maroon-deep/85 backdrop-blur-lg"
+        className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 bg-black/85 backdrop-blur-md overflow-y-auto"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="relative max-w-lg w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
+          className="relative max-w-lg w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl space-y-6 my-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Prominent High-Contrast Close Button */}

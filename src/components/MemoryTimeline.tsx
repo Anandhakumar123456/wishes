@@ -135,7 +135,7 @@ export const MemoryTimeline: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-wedding-maroon-deep/85 backdrop-blur-lg"
+            className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 bg-black/85 backdrop-blur-md overflow-y-auto"
             onClick={() => setSelectedMemory(null)}
           >
             <motion.div
@@ -143,7 +143,7 @@ export const MemoryTimeline: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', damping: 25 }}
-              className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl overflow-visible"
+              className="relative max-w-2xl w-full bg-wedding-card rounded-3xl p-6 sm:p-8 border border-wedding-gold shadow-2xl my-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Prominent High-Contrast Close Button */}
@@ -156,7 +156,7 @@ export const MemoryTimeline: React.FC = () => {
               </button>
 
               <div className="space-y-4">
-                <div className="relative aspect-16/10 rounded-2xl overflow-hidden">
+                <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-wedding-ivory-warm">
                   <img
                     src={selectedMemory.image}
                     alt={selectedMemory.title}

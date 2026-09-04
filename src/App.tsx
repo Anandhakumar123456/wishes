@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { IntroAnimation } from './components/IntroAnimation';
 import { PetalCanvas } from './components/PetalCanvas';
 import { FloatingNavigation } from './components/FloatingNavigation';
@@ -23,6 +24,9 @@ const LOCAL_STORAGE_WISHES_KEY = 'wedding_wishes_list_v2';
 const LOCAL_STORAGE_CONFIG_KEY = 'wedding_config_custom_v1';
 
 export function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [showIntro, setShowIntro] = useState(true);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isGuestUploadOpen, setIsGuestUploadOpen] = useState(false);
@@ -40,108 +44,72 @@ export function App() {
 
   // Route Detection for /admin (Admin Panel) & /upload (Guest Shareable Link)
   useEffect(() => {
-    const checkRoutes = () => {
-      const path = window.location.pathname.toLowerCase().replace(/\/$/, '');
-      const hash = window.location.hash.toLowerCase();
-      const search = window.location.search.toLowerCase();
-      
-      if (path === '/admin' || path.endsWith('/admin') || hash === '#admin' || search.includes('admin=true')) {
-        setIsAdminOpen(true);
-        setShowIntro(false);
-      } else if (
-        path === '/upload' ||
-        path.endsWith('/upload') ||
-        path === '/contribute' ||
-        path.endsWith('/contribute') ||
-        hash === '#upload' ||
-        hash === '#contribute' ||
-        search.includes('upload=true')
-      ) {
-        setIsGuestUploadOpen(true);
-        setShowIntro(false);
-      }
-    };
+    const path = location.pathname.toLowerCase().replace(/\/$/, '');
+    const hash = location.hash.toLowerCase();
+    const search = location.search.toLowerCase();
+    
+    if (path === '/admin' || path.endsWith('/admin') || hash === '#admin' || search.includes('admin=true')) {
+      setIsAdminOpen(true);
+      setIsGuestUploadOpen(false);
+      setShowIntro(false);
+    } else if (
+      path === '/upload' ||
+      path.endsWith('/upload') ||
+      path === '/contribute' ||
+      path.endsWith('/contribute') ||
+      hash === '#upload' ||
+      hash === '#contribute' ||
+      search.includes('upload=true')
+    ) {
+      setIsGuestUploadOpen(true);
+      setIsAdminOpen(false);
+      setShowIntro(false);
+    } else {
+      setIsAdminOpen(false);
+      setIsGuestUploadOpen(false);
+    }
+  }, [location]);
 
-    checkRoutes();
-    window.addEventListener('popstate', checkRoutes);
-    window.addEventListener('hashchange', checkRoutes);
-    return () => {
-      window.removeEventListener('popstate', checkRoutes);
-      window.removeEventListener('hashchange', checkRoutes);
-    };
-  }, []);
-
-  // Load config, photos & wishes from API backend or localStorage or weddingConfig
+  // Load config, photos & wishes from localStorage or weddingConfig
   useEffect(() => {
-    async function fetchInitialData() {
-      // 1. Fetch Config
-      try {
-        const res = await fetch('/api/config');
-        if (res.ok) {
-          const customConfig = await res.json();
-          if (customConfig && Object.keys(customConfig).length > 0) {
-            Object.assign(weddingConfig, customConfig);
-            setWeddingDetails((prev) => ({ ...prev, ...customConfig }));
-          }
-        }
-      } catch (e) {
-        try {
-          const savedConfig = localStorage.getItem(LOCAL_STORAGE_CONFIG_KEY);
-          if (savedConfig) {
-            const parsed = JSON.parse(savedConfig);
-            Object.assign(weddingConfig, parsed);
-            setWeddingDetails((prev) => ({ ...prev, ...parsed }));
-          }
-        } catch (err) {}
+    // 1. Config
+    try {
+      const savedConfig = localStorage.getItem(LOCAL_STORAGE_CONFIG_KEY);
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        Object.assign(weddingConfig, parsed);
+        setWeddingDetails((prev) => ({ ...prev, ...parsed }));
       }
+    } catch (err) {}
 
-      // 2. Fetch Photos
-      try {
-        const res = await fetch('/api/photos');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            setPhotos(data);
-          }
-        }
-      } catch (e) {
-        try {
-          const savedPhotos = localStorage.getItem(LOCAL_STORAGE_GALLERY_KEY);
-          if (savedPhotos) {
-            setPhotos(JSON.parse(savedPhotos));
-          } else {
-            setPhotos(weddingConfig.galleryImages);
-          }
-        } catch (err) {
-          setPhotos(weddingConfig.galleryImages);
-        }
+    // 2. Photos
+    try {
+      const savedPhotos = localStorage.getItem(LOCAL_STORAGE_GALLERY_KEY);
+      if (savedPhotos) {
+        setPhotos(JSON.parse(savedPhotos));
+      } else {
+        setPhotos(weddingConfig.galleryImages);
       }
-
-      // 3. Fetch Wishes
-      try {
-        const res = await fetch('/api/wishes');
-        if (res.ok) {
-          const wishData = await res.json();
-          if (wishData && wishData.length > 0) {
-            setWishes(wishData);
-            return;
-          }
-        }
-      } catch (e) {}
-
-      try {
-        const savedWishes = localStorage.getItem(LOCAL_STORAGE_WISHES_KEY);
-        if (savedWishes) {
-          setWishes(JSON.parse(savedWishes));
-        } else {
-          setWishes(weddingConfig.initialWishes);
-        }
-      } catch (e) {
-        setWishes(weddingConfig.initialWishes);
-      }
+    } catch (err) {
+      setPhotos(weddingConfig.galleryImages);
     }
 
-    fetchInitialData();
+    // 3. Wishes
+    try {
+      const savedWishes = localStorage.getItem(LOCAL_STORAGE_WISHES_KEY);
+      if (savedWishes) {
+        const parsed: UserWish[] = JSON.parse(savedWishes);
+        const normalized = parsed.map((w, idx) => ({
+          ...w,
+          createdAt: w.createdAt || new Date(Date.now() - (idx + 1) * 5 * 60 * 1000).toISOString()
+        }));
+        setWishes(normalized);
+      } else {
+        setWishes(weddingConfig.initialWishes);
+      }
+    } catch (e) {
+      setWishes(weddingConfig.initialWishes);
+    }
   }, []);
 
   const handleSaveDetails = (newDetails: Partial<typeof weddingDetails>) => {
@@ -226,9 +194,7 @@ export function App() {
             isOpen={isAdminOpen}
             onClose={() => {
               setIsAdminOpen(false);
-              if (window.location.pathname.toLowerCase() === '/admin') {
-                window.history.pushState({}, '', '/');
-              }
+              navigate('/');
             }}
             photos={photos}
             wishes={wishes}
@@ -245,10 +211,7 @@ export function App() {
             isOpen={isGuestUploadOpen}
             onClose={() => {
               setIsGuestUploadOpen(false);
-              const path = window.location.pathname.toLowerCase();
-              if (path.includes('/upload') || path.includes('/contribute')) {
-                window.history.pushState({}, '', '/');
-              }
+              navigate('/');
             }}
             onPhotoAdded={handlePhotoAdded}
             onWishAdded={handleWishAdded}

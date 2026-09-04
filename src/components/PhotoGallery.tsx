@@ -57,7 +57,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
   };
 
   return (
-    <section id="memories" className="relative py-24 px-4 bg-wedding-ivory-warm overflow-hidden scroll-mt-24">
+    <section id="memories" className="relative py-20 sm:py-24 px-4 bg-wedding-ivory-warm scroll-mt-24">
       
       <div className="max-w-6xl mx-auto relative z-10">
 
@@ -67,7 +67,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center space-y-4 mb-12"
+          className="text-center space-y-4 mb-10 sm:mb-12"
         >
           <div className="inline-flex items-center gap-2 text-wedding-gold font-script text-2xl">
             <Sparkles className="w-4 h-4" />
@@ -87,7 +87,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
         </motion.div>
 
         {/* Filter Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-10">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-8 sm:mb-10">
           {[
             { id: 'all', label: 'All Photos' },
             { id: 'moments', label: 'Moments' },
@@ -109,8 +109,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
           ))}
         </div>
 
-        {/* Masonry Grid */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Masonry / Responsive Grid */}
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           <AnimatePresence>
             {filteredImages.map((img: GalleryItem, index: number) => {
               const isLiked = likedIds.includes(img.id);
@@ -119,48 +119,52 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
                 <motion.div
                   key={img.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.5, delay: index * 0.05 }}
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  className="relative group cursor-pointer rounded-2xl overflow-hidden glass-luxury border-gold-thin shadow-card-soft"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, delay: index * 0.04 }}
+                  whileHover={{ y: -4 }}
+                  className="relative flex flex-col group cursor-pointer rounded-2xl overflow-hidden glass-luxury border-gold-thin shadow-card-soft"
                   onClick={() => setSelectedIndex(index)}
                 >
                   {/* Photo Container */}
-                  <div className="relative aspect-4/3 sm:aspect-square overflow-hidden bg-wedding-ivory-warm">
+                  <div className="relative aspect-4/3 sm:aspect-square overflow-hidden bg-wedding-ivory-warm w-full shrink-0">
                     <img
                       src={img.url}
                       alt={img.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
 
-                    {/* Gradient Overlay on Hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-wedding-maroon-deep/80 via-wedding-maroon-deep/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-5 text-white">
-                      
-                      <div className="flex justify-end">
-                        <button
-                          onClick={(e) => toggleLike(img.id, e)}
-                          className="p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 transition-colors"
-                        >
-                          <Heart className={`w-5 h-5 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-white'}`} />
-                        </button>
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <Maximize2 className="w-4 h-4 text-wedding-gold" />
-                          <h4 className="font-serif text-lg font-bold text-wedding-gold-light">
-                            {img.title}
-                          </h4>
-                        </div>
-                        <p className="font-sans text-xs text-white/90 italic">
-                          {img.caption}
-                        </p>
-                      </div>
-
+                    <div className="absolute top-3 right-3 z-10">
+                      <span className="px-2.5 py-1 rounded-full bg-wedding-maroon-deep/70 text-wedding-gold-light text-[10px] uppercase font-sans font-semibold tracking-wider backdrop-blur-md">
+                        {img.category}
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Card Content - Document Flow Layout */}
+                  <div className="p-4 flex flex-col gap-1.5 bg-wedding-card/90 border-t border-wedding-gold/20 flex-grow justify-between">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Maximize2 className="w-3.5 h-3.5 text-wedding-gold shrink-0" />
+                        <h4 className="font-serif text-base sm:text-lg font-bold text-wedding-maroon truncate">
+                          {img.title}
+                        </h4>
+                      </div>
+                      <button
+                        onClick={(e) => toggleLike(img.id, e)}
+                        className="p-1.5 rounded-full hover:bg-wedding-gold/20 transition-colors shrink-0"
+                        title="Like Photo"
+                      >
+                        <Heart className={`w-4 h-4 ${isLiked ? 'text-rose-500 fill-rose-500' : 'text-wedding-maroon/40'}`} />
+                      </button>
+                    </div>
+                    {img.caption && (
+                      <p className="font-sans text-xs text-wedding-maroon/75 line-clamp-2 italic leading-relaxed">
+                        {img.caption}
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -177,22 +181,23 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-wedding-maroon-deep/90 backdrop-blur-lg"
+            className="fixed inset-0 z-[100] flex items-start justify-center p-4 sm:p-6 pt-20 sm:pt-24 pb-8 bg-black/90 backdrop-blur-xl overflow-y-auto"
             onClick={() => setSelectedIndex(null)}
           >
             {/* Close Button */}
             <button
               onClick={() => setSelectedIndex(null)}
-              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-3 rounded-full bg-wedding-maroon text-wedding-gold border border-wedding-gold/40 shadow-xl hover:scale-110 transition-all z-50"
+              className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2.5 sm:p-3 rounded-full bg-wedding-maroon text-wedding-gold border border-wedding-gold/40 shadow-xl hover:scale-110 transition-all z-50"
               title="Close"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Prev Button */}
             <button
               onClick={handlePrev}
-              className="absolute left-4 sm:left-8 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-50"
+              className="fixed left-2 sm:left-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/60 text-wedding-gold border border-wedding-gold/40 hover:bg-black/80 transition-all z-50"
+              title="Previous photo"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -200,7 +205,8 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
             {/* Next Button */}
             <button
               onClick={handleNext}
-              className="absolute right-4 sm:right-8 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-50"
+              className="fixed right-2 sm:right-6 top-1/2 -translate-y-1/2 p-2.5 sm:p-3 rounded-full bg-black/60 text-wedding-gold border border-wedding-gold/40 hover:bg-black/80 transition-all z-50"
+              title="Next photo"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -212,20 +218,22 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos }) => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="relative max-w-4xl max-h-[85vh] w-full flex flex-col items-center"
+              className="relative max-w-3xl w-full my-auto flex flex-col items-center gap-4 bg-[#FAF7F2] text-[#4A0E17] p-4 sm:p-6 rounded-3xl border border-wedding-gold/60 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={filteredImages[selectedIndex].url}
-                alt={filteredImages[selectedIndex].title}
-                className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl border border-wedding-gold/40 shadow-2xl"
-              />
+              <div className="relative w-full max-h-[60vh] sm:max-h-[68vh] flex items-center justify-center overflow-hidden rounded-2xl bg-black/5">
+                <img
+                  src={filteredImages[selectedIndex].url}
+                  alt={filteredImages[selectedIndex].title}
+                  className="max-h-[60vh] sm:max-h-[68vh] w-auto max-w-full object-contain rounded-2xl"
+                />
+              </div>
 
-              <div className="mt-4 text-center text-wedding-bg space-y-1">
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-wedding-gold">
+              <div className="text-center space-y-1 px-2">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-wedding-maroon">
                   {filteredImages[selectedIndex].title}
                 </h3>
-                <p className="font-sans text-xs sm:text-sm text-wedding-bg/80">
+                <p className="font-sans text-xs sm:text-sm text-wedding-maroon/80 italic">
                   {filteredImages[selectedIndex].caption}
                 </p>
               </div>

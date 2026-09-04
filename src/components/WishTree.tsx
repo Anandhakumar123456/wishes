@@ -20,67 +20,48 @@ export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAd
   const [messageInput, setMessageInput] = useState('');
   const [activeWish, setActiveWish] = useState<UserWish | null>(null);
 
-  // Sync from props, API or localStorage
+  const [, setTick] = useState(0);
+
+  // Live timer interval to automatically update relative timestamps
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Sync from props or localStorage
   useEffect(() => {
     if (propWishes && propWishes.length > 0) {
       setWishes(propWishes);
       return;
     }
 
-    async function fetchWishes() {
-      try {
-        const res = await fetch('/api/wishes');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            setWishes(data);
-            return;
-          }
-        }
-      } catch (e) {}
-
-      try {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          setWishes(JSON.parse(saved));
-        } else {
-          setWishes(weddingConfig.initialWishes);
-        }
-      } catch (e) {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        setWishes(JSON.parse(saved));
+      } else {
         setWishes(weddingConfig.initialWishes);
       }
+    } catch (e) {
+      setWishes(weddingConfig.initialWishes);
     }
-
-    fetchWishes();
   }, [propWishes]);
 
-  const handleSubmitWish = async (e: React.FormEvent) => {
+  const handleSubmitWish = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim() || !messageInput.trim()) return;
 
     const colors = ['#E5C158', '#F4C2C2', '#93C5FD', '#FDE047', '#C084FC'];
-    const payload = {
+    const createdWish: UserWish = {
+      id: `wish-${Date.now()}`,
       name: nameInput.trim(),
       message: messageInput.trim(),
-      leafColor: colors[Math.floor(Math.random() * colors.length)]
+      leafColor: colors[Math.floor(Math.random() * colors.length)],
+      date: 'Just now',
+      createdAt: new Date().toISOString()
     };
-
-    let createdWish: UserWish = {
-      id: `wish-${Date.now()}`,
-      ...payload,
-      date: 'Just now'
-    };
-
-    try {
-      const res = await fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        createdWish = await res.json();
-      }
-    } catch (err) {}
 
     if (onWishAdded) {
       onWishAdded(createdWish);
@@ -89,7 +70,7 @@ export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAd
       setWishes(updated);
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {}
+      } catch (e) { }
     }
 
     setNameInput('');
@@ -101,7 +82,7 @@ export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAd
 
   return (
     <section id="wishes" className="relative py-24 px-4 bg-wedding-ivory-warm overflow-hidden scroll-mt-24">
-      
+
       <div className="max-w-5xl mx-auto relative z-10 text-center space-y-8">
 
         {/* Header */}
@@ -139,7 +120,7 @@ export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAd
 
         {/* Tree Container SVG with Lush Canopy & Glowing Leaves */}
         <div className="relative py-4 w-full max-w-2xl mx-auto flex flex-col items-center min-h-[420px] sm:min-h-[480px]">
-          
+
           <svg
             className="w-full max-w-lg h-auto drop-shadow-2xl overflow-visible"
             viewBox="0 0 500 480"
@@ -508,6 +489,9 @@ export const WishTree: React.FC<WishTreeProps> = ({ wishes: propWishes, onWishAd
               <h4 className="font-serif text-xl font-bold text-wedding-maroon">
                 {activeWish.name}'s Wish
               </h4>
+              <p className="text-xs text-wedding-maroon/50">
+                {formatRelativeTime(activeWish.createdAt, activeWish.date)}
+              </p>
               <p className="font-sans text-wedding-maroon/90 italic">
                 "{activeWish.message}"
               </p>

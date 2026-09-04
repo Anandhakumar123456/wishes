@@ -5,16 +5,4 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: "/wishes/",
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      },
-      '/uploads': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-      }
-    }
-  }
 })

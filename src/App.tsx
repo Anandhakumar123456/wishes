@@ -6,7 +6,6 @@ import { FloatingNavigation } from './components/FloatingNavigation';
 import { WeddingHero } from './components/WeddingHero';
 import { WishSection } from './components/WishSection';
 import { MemoryTimeline } from './components/MemoryTimeline';
-import { PhotoGallery } from './components/PhotoGallery';
 import { LetterSection } from './components/LetterSection';
 import { Countdown } from './components/Countdown';
 import { WishTree } from './components/WishTree';
@@ -159,6 +158,36 @@ export function App() {
     } catch (e) {}
   };
 
+  if (isAdminOpen) {
+    return (
+      <AdminDashboard
+        isOpen={true}
+        onClose={() => {
+          setIsAdminOpen(false);
+          navigate('/');
+        }}
+        photos={photos}
+        wishes={wishes}
+        onPhotoAdded={handlePhotoAdded}
+        onPhotoDeleted={handlePhotoDeleted}
+        onWishAdded={handleWishAdded}
+        onWishDeleted={handleWishDeleted}
+        weddingDetails={weddingDetails}
+        onSaveDetails={handleSaveDetails}
+      />
+    );
+  }
+
+  if (isGuestUploadOpen) {
+    return (
+      <GuestUploadModal
+        onWishAdded={handleWishAdded}
+        groomName={weddingDetails.groomName}
+        brideName={weddingDetails.brideName}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-wedding-bg text-wedding-maroon relative font-sans selection:bg-wedding-gold/30">
 
@@ -178,7 +207,6 @@ export function App() {
             <WeddingHero />
             <WishSection />
             <MemoryTimeline />
-            <PhotoGallery photos={photos} />
             <LetterSection />
             <Countdown />
             <WishTree wishes={wishes} onWishAdded={handleWishAdded} />
@@ -188,34 +216,6 @@ export function App() {
 
           {/* Floating Music Player */}
           <MusicPlayer />
-
-          {/* Admin Management Dashboard Modal */}
-          <AdminDashboard
-            isOpen={isAdminOpen}
-            onClose={() => {
-              setIsAdminOpen(false);
-              navigate('/');
-            }}
-            photos={photos}
-            wishes={wishes}
-            onPhotoAdded={handlePhotoAdded}
-            onPhotoDeleted={handlePhotoDeleted}
-            onWishAdded={handleWishAdded}
-            onWishDeleted={handleWishDeleted}
-            weddingDetails={weddingDetails}
-            onSaveDetails={handleSaveDetails}
-          />
-
-          {/* Guest Shareable Photo & Wish Upload Modal */}
-          <GuestUploadModal
-            isOpen={isGuestUploadOpen}
-            onClose={() => {
-              setIsGuestUploadOpen(false);
-              navigate('/');
-            }}
-            onPhotoAdded={handlePhotoAdded}
-            onWishAdded={handleWishAdded}
-          />
 
           {/* Footer */}
           <footer className="relative z-10 py-10 px-4 bg-wedding-maroon-deep text-wedding-gold-light/70 text-center border-t border-wedding-gold/20 text-xs sm:text-sm font-sans space-y-3">

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Home, BookOpen, Image, Mail, Clock, Heart } from 'lucide-react';
+import { Home, BookOpen, Mail, Clock, Heart } from 'lucide-react';
 
 const navItems = [
   { id: 'home', label: 'Home', icon: Home },
   { id: 'wish', label: 'Wish', icon: Heart },
   { id: 'story', label: 'Story', icon: BookOpen },
-  { id: 'memories', label: 'Memories', icon: Image },
   { id: 'letter', label: 'Letter', icon: Mail },
   { id: 'countdown', label: 'Countdown', icon: Clock },
 ];
